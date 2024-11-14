@@ -62,11 +62,11 @@ export function TickerTape() {
 
   return (
     <div
-      className="tradingview-widget-container mb-2 md:min-h-20 min-h-28"
+      className="tradingview-widget-container mb-2 min-h-28 md:min-h-20"
       ref={container}
     >
       <div className="tradingview-widget-container__widget"></div>
-      <div className="tradingview-widget-copyright flex justify-end mr-2">
+      <div className="tradingview-widget-copyright mr-2 flex justify-end">
         <a
           href="https://www.tradingview.com/"
           rel="noopener nofollow"

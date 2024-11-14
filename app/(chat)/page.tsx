@@ -1,20 +1,21 @@
+'use client'
+
 import { nanoid } from '@/lib/utils'
 import { Chat } from '@/components/chat'
-import { AI } from '@/lib/chat/actions'
-import { Session } from '@/lib/types'
 import { getMissingKeys } from '@/app/actions'
+import { useEffect, useState } from 'react'
 
-export const metadata = {
-  title: 'StockBot powered by Groq'
-}
-
-export default async function IndexPage() {
+export default function ChatPage() {
   const id = nanoid()
-  const missingKeys = await getMissingKeys()
+  const [missingKeys, setMissingKeys] = useState<string[]>([])
 
-  return (
-    <AI initialAIState={{ chatId: id, messages: [] }}>
-      <Chat id={id} missingKeys={missingKeys} />
-    </AI>
-  )
+  useEffect(() => {
+    const fetchMissingKeys = async () => {
+      const keys = await getMissingKeys()
+      setMissingKeys(keys)
+    }
+    fetchMissingKeys()
+  }, [])
+
+  return <Chat id={id} missingKeys={missingKeys} />
 }

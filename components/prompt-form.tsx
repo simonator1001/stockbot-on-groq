@@ -6,7 +6,7 @@ import Textarea from 'react-textarea-autosize'
 import { useActions, useUIState } from 'ai/rsc'
 
 import { UserMessage } from './stocks/message'
-import { type AI } from '@/lib/chat/actions'
+import { AI } from '@/lib/chat/actions'
 import { Button } from '@/components/ui/button'
 import { IconArrowDown, IconPlus } from '@/components/ui/icons'
 import {
@@ -19,20 +19,32 @@ import { nanoid } from 'nanoid'
 import { useRouter } from 'next/navigation'
 
 import { useLocalStorage } from '@/lib/hooks/use-local-storage'
+import { ModelProvider } from '@/lib/types'
+import { BotMessage } from '@/components/stocks/message'
+import { UIState } from '@/lib/types'
+
+type UIMessage = {
+  id: string
+  display: React.ReactNode
+}
+
+type Messages = UIMessage[]
 
 export function PromptForm({
   input,
-  setInput
+  setInput,
+  messages,
+  setMessages
 }: {
   input: string
   setInput: (value: string) => void
+  messages: UIState
+  setMessages: React.Dispatch<React.SetStateAction<UIState>>
 }) {
   const router = useRouter()
   const { formRef, onKeyDown } = useEnterSubmit()
   const inputRef = React.useRef<HTMLTextAreaElement>(null)
-  const { submitUserMessage } = useActions()
-  const [_, setMessages] = useUIState<typeof AI>()
-  const [apiKey, setApiKey] = useLocalStorage('groqKey', '')
+  const [selectedModel] = useLocalStorage('selectedModel', 'groq')
 
   React.useEffect(() => {
     if (inputRef.current) {
@@ -43,19 +55,18 @@ export function PromptForm({
   return (
     <form
       ref={formRef}
-      onSubmit={async (e: any) => {
+      onSubmit={async (e: React.FormEvent) => {
         e.preventDefault()
 
-        // Blur focus on mobile
         if (window.innerWidth < 600) {
-          e.target['message']?.blur()
+          const target = e.target as HTMLFormElement
+          target['message']?.blur()
         }
 
         const value = input.trim()
         setInput('')
         if (!value) return
 
-        // Optimistically add user message UI
         setMessages(currentMessages => [
           ...currentMessages,
           {
@@ -64,9 +75,40 @@ export function PromptForm({
           }
         ])
 
-        // Submit and get response message
-        const responseMessage = await submitUserMessage(value, apiKey)
-        setMessages(currentMessages => [...currentMessages, responseMessage])
+        try {
+          const response = await fetch('/api/chat', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+              message: value,
+              model: selectedModel
+            })
+          })
+
+          const data = await response.json()
+          if (data.error) throw new Error(data.error)
+
+          setMessages(currentMessages => [
+            ...currentMessages,
+            {
+              id: nanoid(),
+              display: <BotMessage content={data.content} />
+            }
+          ])
+        } catch (error) {
+          console.error('Error:', error)
+          setMessages(currentMessages => [
+            ...currentMessages,
+            {
+              id: nanoid(),
+              display: (
+                <BotMessage content="Sorry, there was an error processing your message. Please try again." />
+              )
+            }
+          ])
+        }
       }}
     >
       <div className="relative flex max-h-60 w-full grow flex-col overflow-hidden bg-background px-8 sm:border sm:px-12">

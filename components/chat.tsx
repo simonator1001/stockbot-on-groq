@@ -6,8 +6,7 @@ import { ChatPanel } from '@/components/chat-panel'
 import { EmptyScreen } from '@/components/empty-screen'
 import { useLocalStorage } from '@/lib/hooks/use-local-storage'
 import { useEffect, useState } from 'react'
-import { useUIState, useAIState } from 'ai/rsc'
-import { Message, Session } from '@/lib/types'
+import { Message, Session, UIState } from '@/lib/types'
 import { usePathname, useRouter } from 'next/navigation'
 import { useScrollAnchor } from '@/lib/hooks/use-scroll-anchor'
 import { toast } from 'sonner'
@@ -25,10 +24,16 @@ export function Chat({ id, className, session, missingKeys }: ChatProps) {
   const router = useRouter()
   const path = usePathname()
   const [input, setInput] = useState('')
-  const [messages] = useUIState()
-  const [aiState] = useAIState()
-
+  const [messages, setMessages] = useState<UIState>([])
+  const [mounted, setMounted] = useState(false)
   const [_, setNewChatId] = useLocalStorage('newChatId', id)
+
+  const { scrollRef, messagesRef, visibilityRef, isAtBottom, scrollToBottom } =
+    useScrollAnchor()
+
+  useEffect(() => {
+    setMounted(true)
+  }, [])
 
   useEffect(() => {
     if (session?.user) {
@@ -39,31 +44,21 @@ export function Chat({ id, className, session, missingKeys }: ChatProps) {
   }, [id, path, session?.user, messages])
 
   useEffect(() => {
-    const messagesLength = aiState.messages?.length
-    if (messagesLength === 2) {
-      router.refresh()
-    }
-    console.log('Value: ', aiState.messages)
-  }, [aiState.messages, router])
-
-  useEffect(() => {
     setNewChatId(id)
-  })
+  }, [id, setNewChatId])
 
   useEffect(() => {
-    missingKeys.map(key => {
-      toast.error(`Missing ${key} environment variable!`)
-    })
-  }, [missingKeys])
+    if (mounted) {
+      missingKeys.forEach(key => {
+        toast.error(`Missing ${key} environment variable!`)
+      })
+    }
+  }, [missingKeys, mounted])
 
-  const { messagesRef, scrollRef, visibilityRef, isAtBottom, scrollToBottom } =
-    useScrollAnchor()
+  if (!mounted) return null
 
   return (
-    <div
-      className="group w-full overflow-auto pl-0 peer-[[data-state=open]]:lg:pl-[250px] peer-[[data-state=open]]:xl:pl-[300px]"
-      ref={scrollRef}
-    >
+    <div className="group w-full overflow-auto pl-0 peer-[[data-state=open]]:lg:pl-[250px] peer-[[data-state=open]]:xl:pl-[300px]">
       {messages.length ? (
         <MissingApiKeyBanner missingKeys={missingKeys} />
       ) : (
@@ -71,26 +66,40 @@ export function Chat({ id, className, session, missingKeys }: ChatProps) {
       )}
 
       <div
-        className={cn(
-          messages.length ? 'pb-[200px] pt-4 md:pt-6' : 'pb-[200px] pt-0',
-          className
-        )}
-        ref={messagesRef}
+        ref={scrollRef}
+        className={cn('pb-[200px] pt-4 md:pt-10', className)}
       >
-        {messages.length ? (
-          <ChatList messages={messages} isShared={false} session={session} />
-        ) : (
-          <EmptyScreen />
-        )}
-        <div className="w-full h-px" ref={visibilityRef} />
+        <div className="relative mx-auto max-w-2xl px-4">
+          <div ref={messagesRef}>
+            {messages.length ? (
+              <ChatList
+                messages={messages}
+                isShared={false}
+                session={session}
+              />
+            ) : (
+              <EmptyScreen />
+            )}
+            <div ref={visibilityRef} className="h-px" />
+          </div>
+        </div>
       </div>
-      <ChatPanel
-        id={id}
-        input={input}
-        setInput={setInput}
-        isAtBottom={isAtBottom}
-        scrollToBottom={scrollToBottom}
-      />
+
+      <div className="fixed inset-x-0 bottom-0">
+        <div className="mx-auto max-w-2xl px-4">
+          <div className="bg-gradient-to-b from-muted/50 from-0% to-muted/30 to-50%">
+            <ChatPanel
+              id={id}
+              input={input}
+              setInput={setInput}
+              isAtBottom={isAtBottom}
+              scrollToBottom={scrollToBottom}
+              messages={messages}
+              setMessages={setMessages}
+            />
+          </div>
+        </div>
+      </div>
     </div>
   )
 }

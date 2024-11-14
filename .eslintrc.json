@@ -3,24 +3,32 @@
   "root": true,
   "extends": [
     "next/core-web-vitals",
-    "prettier",
     "plugin:tailwindcss/recommended"
   ],
-  "plugins": ["tailwindcss"],
+  "plugins": [
+    "react-hooks",
+    "tailwindcss"
+  ],
   "rules": {
+    "react-hooks/rules-of-hooks": "error",
+    "react-hooks/exhaustive-deps": "warn",
+    "tailwindcss/enforces-shorthand": "warn",
+    "tailwindcss/no-unnecessary-arbitrary-value": "warn",
     "tailwindcss/no-custom-classname": "off",
-    "tailwindcss/classnames-order": "off"
+    "tailwindcss/classnames-order": "warn"
   },
   "settings": {
     "tailwindcss": {
-      "callees": ["cn", "cva"],
-      "config": "tailwind.config.js"
+      "whitelist": [
+        "tradingview-widget-container",
+        "tradingview-widget-container__widget",
+        "tradingview-widget-copyright",
+        "toaster",
+        "codeblock",
+        "cls-1",
+        "cls-2",
+        "font-muted-foreground"
+      ]
     }
-  },
-  "overrides": [
-    {
-      "files": ["*.ts", "*.tsx"],
-      "parser": "@typescript-eslint/parser"
-    }
-  ]
+  }
 }

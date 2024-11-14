@@ -2,7 +2,7 @@
 
 import React, { useEffect, useRef, memo } from 'react'
 
-export function StockNews({ props: symbol }: { props: string }) {
+export default function StockNews({ symbol }: { symbol: string }) {
   const container = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
@@ -53,5 +53,3 @@ export function StockNews({ props: symbol }: { props: string }) {
     </div>
   )
 }
-
-export default memo(StockNews)

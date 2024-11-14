@@ -2,15 +2,16 @@
 
 import React, { useEffect, useRef, memo } from 'react'
 
-export function MarketOverview({}) {
+export function MarketOverview() {
   const container = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
     if (!container.current) return
 
+    const currentContainer = container.current
     const script = document.createElement('script')
     script.src =
-      'https://s3.tradingview.com/external-embedding/embed-widget-market-quotes.js'
+      'https://s3.tradingview.com/external-embedding/embed-widget-market-overview.js'
     script.type = 'text/javascript'
     script.async = true
     script.innerHTML = JSON.stringify({
@@ -141,33 +142,30 @@ export function MarketOverview({}) {
       // backgroundColor: "#ffffff"
     })
 
-    container.current.appendChild(script)
+    currentContainer.appendChild(script)
 
     return () => {
-      if (container.current) {
-        container.current.removeChild(script)
+      try {
+        if (currentContainer.contains(script)) {
+          currentContainer.removeChild(script)
+        }
+      } catch (error) {
+        console.error('Error cleaning up TradingView widget:', error)
       }
     }
   }, [])
 
   return (
-    <div style={{ height: '300px' }}>
-      <div
-        className="tradingview-widget-container"
-        ref={container}
-        style={{ height: '100%', width: '100%' }}
-      >
-        <div
-          className="tradingview-widget-container__widget"
-          style={{ height: 'calc(100% - 32px)', width: '100%' }}
-        ></div>
-        <div className="tradingview-widget-copyright">
+    <div style={{ height: '500px' }}>
+      <div ref={container} style={{ height: '100%', width: '100%' }}>
+        <div style={{ height: 'calc(100% - 32px)', width: '100%' }}></div>
+        <div>
           <a
             href="https://www.tradingview.com/"
             rel="noopener nofollow"
             target="_blank"
           >
-            <span className="">Track all markets on TradingView</span>
+            <span>Track all markets on TradingView</span>
           </a>
         </div>
       </div>

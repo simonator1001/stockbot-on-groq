@@ -8,6 +8,7 @@ export function ETFHeatmap({}) {
   useEffect(() => {
     if (!container.current) return
 
+    const currentContainer = container.current
     const script = document.createElement('script')
     script.src =
       'https://s3.tradingview.com/external-embedding/embed-widget-etf-heatmap.js'
@@ -30,11 +31,15 @@ export function ETFHeatmap({}) {
       height: '100%'
     })
 
-    container.current.appendChild(script)
+    currentContainer.appendChild(script)
 
     return () => {
-      if (container.current) {
-        container.current.removeChild(script)
+      try {
+        if (currentContainer.contains(script)) {
+          currentContainer.removeChild(script)
+        }
+      } catch (error) {
+        console.error('Error cleaning up TradingView widget:', error)
       }
     }
   }, [])

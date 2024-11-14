@@ -10,7 +10,7 @@ export function EmptyScreen() {
         <h1 className="text-lg font-semibold">
           Welcome to the StockBot powered by Groq!
         </h1>
-        <p className="leading-normal text-sm">
+        <p className="text-sm leading-normal">
           Open source AI chatbot that uses function calling to render relevant
           TradingView stock market widgets.{' '}
           <span className="font-muted-foreground">

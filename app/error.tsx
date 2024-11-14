@@ -14,8 +14,8 @@ export default function Error({ error, reset }: ErrorProps) {
 
   return (
     <div className="border p-4">
-      <div className="text-red-700 font-medium">Error: {error.message}</div>
-      <div className="flex items-center mt-2">
+      <div className="font-medium text-red-700">Error: {error.message}</div>
+      <div className="mt-2 flex items-center">
         <a
           href="https://github.com/bklieger-groq/stockbot-on-groq/issues"
           target="_blank"
